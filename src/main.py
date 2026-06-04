@@ -12,6 +12,25 @@ from .storage.manager import ConfigError, StorageManager
 from .orchestrator import HorizonOrchestrator
 
 
+def _configure_stream_encoding(stream) -> None:
+    """Use UTF-8 for local Windows shells that default to GBK."""
+    reconfigure = getattr(stream, "reconfigure", None)
+    if not reconfigure:
+        return
+
+    encoding = getattr(stream, "encoding", None) or ""
+    if "utf" in encoding.lower():
+        return
+
+    try:
+        reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+
+_configure_stream_encoding(sys.stdout)
+_configure_stream_encoding(sys.stderr)
+
 console = Console()
 
 

@@ -20,30 +20,36 @@ Respond with valid JSON only:
 
 If there are no duplicates at all, return: {{"duplicates": []}}"""
 
-CONTENT_ANALYSIS_SYSTEM = """You are an expert content curator helping filter important technical and academic information.
+CONTENT_ANALYSIS_SYSTEM = """You are an expert content curator helping filter important automotive retail, used-car, and mobility industry information.
+
+Used-car industry relevance is the primary ranking axis. Direct used-car, dealer, auto-retail, auction, inventory, residual-value, financing, insurance, platform, export, and refurbishment items should outrank broad auto-industry context. General auto industry news is allowed as context, but it cannot score above 5 unless the item states a clear used-car or auto-retail impact. If the impact is only an analyst inference rather than an explicit fact in the item, treat it as context-only auto news and cap it at 6. Do not give high scores to automaker strategy, NEV product launches, robotaxi updates, executive speeches, or generic sales headlines unless they directly affect used-car supply, residual values, dealer inventory, auction pricing, sourcing, refurbishment, financing, insurance, regulation, or platform competition.
 
 Score content on a 0-10 scale based on importance and relevance:
 
-**9-10: Groundbreaking** - Major breakthroughs, paradigm shifts, or highly significant announcements
-- New major version releases of widely-used technologies
-- Significant research breakthroughs
-- Important industry-changing announcements
+**9-10: Market-moving** - Major policy, price, inventory, capital-market, platform, or business-model changes
+- National or regional used-car policy changes, tax rules, compliance shifts, or trade-in subsidies
+- Significant transaction-volume, wholesale-price, residual-value, inventory, or dealer-profitability data
+- Major M&A, financing, bankruptcy, fraud, regulatory enforcement, or platform strategy announcements
+- Important changes affecting China auto circulation, dealer networks, NEV residual values, auctions, export, finance, insurance, or aftersales
 
 **7-8: High Value** - Important developments worth immediate attention
-- Interesting technical deep-dives
-- Novel approaches to known problems
-- Insightful analysis or commentary
-- Valuable tools or libraries
+- Original data, industry reports, or expert analysis with clear implications
+- Notable moves by used-car platforms, automakers, dealer groups, auctions, leasing, finance, or insurance providers
+- Useful analysis of pricing, supply, demand, conversion, sourcing, auction, inventory, refurbishment, warranty, or consumer-credit dynamics
+- Cross-market signals from the U.S., China, Europe, or other relevant auto retail markets
 
 **5-6: Interesting** - Worth knowing but not urgent
 - Incremental improvements
-- Useful tutorials
+- Local market updates
 - Moderate community interest
+- Product, channel, or operational changes with limited strategic impact
+- General auto industry context that plausibly affects used-car or auto-retail conditions, but does not provide direct evidence
 
 **3-4: Low Priority** - Generic or routine content
 - Minor updates
 - Common knowledge
 - Overly promotional content
+- General auto industry news without a clear used-car or auto-retail impact
 
 **0-2: Noise** - Not relevant or low quality
 - Spam or purely promotional
@@ -51,10 +57,10 @@ Score content on a 0-10 scale based on importance and relevance:
 - Trivial updates
 
 Consider:
-- Technical depth and novelty
-- Potential impact on the field
+- Data specificity and credibility
+- Potential impact on used-car transactions, pricing, inventory, sourcing, financing, compliance, or platform competition
 - Quality of writing/presentation
-- Relevance to software engineering, AI/ML, and systems research
+- Relevance to the used-car industry, auto circulation, auto retail, auctions, NEV residual values, dealer operations, and related public companies
 - Community discussion quality: insightful comments, diverse viewpoints, and debates increase value
 - Engagement signals: high upvotes/favorites with substantive discussion indicate community-validated importance
 """
@@ -81,10 +87,10 @@ Respond with valid JSON only:
   "tags": ["<tag1>", "<tag2>", ...]
 }}"""
 
-CONCEPT_EXTRACTION_SYSTEM = """You identify technical concepts in news that a reader might not know.
+CONCEPT_EXTRACTION_SYSTEM = """You identify used-car and auto retail industry concepts that a reader might not know.
 Given a news item, return 1-3 search queries for concepts that need explanation.
-Focus on: specific technologies, protocols, algorithms, tools, or projects that are not widely known.
-Do NOT return queries for well-known things (e.g. "Python", "Linux", "Google").
+Focus on: market metrics, regulations, policy programs, companies, platforms, auction terms, finance/insurance concepts, residual-value terms, and industry datasets that are not widely known.
+Do NOT return queries for well-known things (e.g. "car", "dealer", "China").
 If the news is self-explanatory, return an empty list."""
 
 CONCEPT_EXTRACTION_USER = """What concepts in this news might need explanation?
@@ -99,7 +105,7 @@ Respond with valid JSON only:
   "queries": ["<search query 1>", "<search query 2>"]
 }}"""
 
-CONTENT_ENRICHMENT_SYSTEM = """You are a knowledgeable technical writer who helps readers understand important news in context.
+CONTENT_ENRICHMENT_SYSTEM = """You are a knowledgeable used-car industry analyst who helps readers understand important news in context.
 
 Given a high-scoring news item, its content, and web search results about the topic, your job is to produce a structured analysis.
 
@@ -118,7 +124,7 @@ Field definitions:
 
 2. **why_it_matters** (1-2 complete sentences): Why this is significant, what impact it could have, who will be affected. Connect to the broader ecosystem or industry trends.
 
-3. **key_details** (1-2 complete sentences): Notable technical details, limitations, caveats, or additional context worth knowing. Include specifics that a technically-minded reader would find valuable.
+3. **key_details** (1-2 complete sentences): Notable data points, business details, policy constraints, limitations, caveats, or additional context worth knowing. Include specifics that an industry-minded reader would find valuable.
 
 4. **background** (2-4 sentences): Brief background knowledge that helps a reader without deep domain expertise understand the news. Explain key concepts, technologies, or context that the news assumes the reader already knows.
 
@@ -132,7 +138,7 @@ Guidelines:
 - EVERY field (except community_discussion when no comments exist) must contain at least one complete sentence — no field may be empty or contain just a phrase
 - Base your explanation on the provided content and web search results — do NOT fabricate information
 - ONLY explain concepts and terms that are explicitly mentioned in the title, summary, or content
-- Use the web search results to ensure accuracy, especially for recent projects, tools, or events
+- Use the web search results to ensure accuracy, especially for recent companies, policies, datasets, market reports, or events
 - If the news is self-explanatory and needs no background, return an empty string for both background fields
 - For **sources**: pick 1-3 URLs from the Web Search Results that you actually relied on for the background fields. Only use URLs that appear verbatim in the search results above — do not invent or modify URLs.
 """

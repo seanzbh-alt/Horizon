@@ -16,6 +16,14 @@ from ..models import ContentItem, SourceType, RSSSourceConfig
 
 logger = logging.getLogger(__name__)
 
+RSS_REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0 Safari/537.36 Horizon/0.1"
+    )
+}
+
 
 class RSSScraper(BaseScraper):
     """Scraper for RSS/Atom feeds."""
@@ -73,7 +81,11 @@ class RSSScraper(BaseScraper):
             )
 
             # Fetch feed content
-            response = await self.client.get(feed_url, follow_redirects=True)
+            response = await self.client.get(
+                feed_url,
+                follow_redirects=True,
+                headers=RSS_REQUEST_HEADERS,
+            )
             response.raise_for_status()
 
             # Parse feed
@@ -131,6 +143,13 @@ class RSSScraper(BaseScraper):
         for field in ["published", "updated", "created"]:
             if field in entry:
                 try:
+                    # Some feeds publish non-RFC dates such as
+                    # "2026/5/12 17:22:11"; feedparser can misread them as
+                    # the current day, so parse those raw values first.
+                    parsed_plain = self._parse_plain_date(entry[field])
+                    if parsed_plain:
+                        return parsed_plain
+
                     # Try parsing structured time first
                     if f"{field}_parsed" in entry and entry[f"{field}_parsed"]:
                         return datetime.fromtimestamp(
@@ -141,6 +160,21 @@ class RSSScraper(BaseScraper):
                     return parsedate_to_datetime(date_str)
                 except Exception:
                     continue
+
+        return None
+
+    def _parse_plain_date(self, date_str: str) -> datetime | None:
+        """Parse common plain date strings without timezone information."""
+        if not isinstance(date_str, str):
+            return None
+
+        for fmt in ("%Y/%m/%d %H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+            try:
+                return datetime.strptime(date_str.strip(), fmt).replace(
+                    tzinfo=timezone.utc
+                )
+            except ValueError:
+                continue
 
         return None
 
